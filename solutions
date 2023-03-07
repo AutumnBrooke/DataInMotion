@@ -1,0 +1,51 @@
+--Given the reviews table, write a query to get the average stars for each product every month.
+
+--The output should include the month in numerical value, product id, and average star rating rounded 
+--to two decimal places. Sort the output based on month followed by the product id.
+
+SELECT EXTRACT(MONTH FROM submit_date) AS "month",
+       product_id,
+       ROUND(AVG(stars), 2) AS avg_score
+FROM reviews
+GROUP BY month, product_id
+ORDER BY month ASC, product_id ASC
+
+--Return:
+month	product_id	avg_score
+5	    25255	      4.00
+5	    25600	      4.33
+6	    12580	      4.50
+6	    50001	      3.50
+6	    69852	      4.00
+7	    11223	      5.00
+7	    69852	      2.50
+
+--Assume you are given the table containing measurement values obtained from a Google sensor over several days. Measurements are taken several times within a given day.
+--Write a query to obtain the sum of the odd-numbered and even-numbered measurements on a particular day, in two different columns. Refer to the Example Output below for the output format.
+
+--Definition:
+--1st, 3rd, and 5th measurements taken within a day are considered odd-numbered measurements and the 2nd, 4th, and 6th measurements are even-numbered measurements.
+
+WITH measurement_by_count AS
+(SELECT CAST (measurement_time AS date) AS measurement_day,
+             measurement_value,
+             ROW_NUMBER() OVER(
+          PARTITION BY CAST(measurement_time AS date)
+          ORDER BY measurement_time
+          ) AS measurement_num  
+FROM measurements)
+
+SELECT measurement_day,
+       SUM(CASE WHEN measurement_num % 2 != 0 
+    THEN measurement_value ELSE 0 END) AS odd,
+       SUM(CASE WHEN measurement_num % 2 = 0 
+    THEN measurement_value ELSE 0 END) AS even
+FROM measurement_by_count
+GROUP BY measurement_day
+
+--Return:
+measurement_day	      odd	      even
+07/10/2022 00:00:00	  2355.75	  1662.74
+07/11/2022 00:00:00	  2377.12 	2480.70
+07/12/2022 00:00:00	  2903.40	  1244.30
+
